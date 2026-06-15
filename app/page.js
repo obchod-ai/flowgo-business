@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import SignatureCanvas from "react-signature-canvas";
-import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
+import { useJsApiLoader } from "@react-google-maps/api";
 import { supabase } from "../lib/supabase";
 
 const libraries = ["places"];
@@ -629,14 +629,7 @@ async function saveDeliverySignature(orderId) {
           <div className="mt-6 space-y-4">
             <div>
               <label className="font-semibold">Vyzvednutí</label>
-              <Autocomplete
-                onLoad={setPickupAutocomplete}
-                onPlaceChanged={onPickupPlaceChanged}
-                options={{
-                  componentRestrictions: { country: "cz" },
-                  fields: ["formatted_address", "geometry", "name"],
-                }}
-              >
+            
                 <input
                   value={pickupAddress}
                   onChange={(e) => {
@@ -645,19 +638,12 @@ async function saveDeliverySignature(orderId) {
                   }}
                   className="w-full mt-2 p-4 rounded-xl bg-slate-100 outline-none"
                 />
-              </Autocomplete>
+             
             </div>
 
             <div>
               <label className="font-semibold">Doručení</label>
-              <Autocomplete
-                onLoad={setDeliveryAutocomplete}
-                onPlaceChanged={onDeliveryPlaceChanged}
-                options={{
-                  componentRestrictions: { country: "cz" },
-                  fields: ["formatted_address", "geometry", "name"],
-                }}
-              >
+          
                 <input
                   value={deliveryAddress}
                   onChange={(e) => {
@@ -666,7 +652,7 @@ async function saveDeliverySignature(orderId) {
                   }}
                   className="w-full mt-2 p-4 rounded-xl bg-slate-100 outline-none"
                 />
-              </Autocomplete>
+              
             </div>
 
 {stops.map((stop, index) => (
