@@ -189,6 +189,7 @@ calculateLeg(0);
   {
     pickup_address: pickupAddress,
     delivery_address: deliveryAddress,
+    stops: stops.filter((stop) => stop.trim() !== "").join(" | "),
     user_email: user.email,
     price,
     status: "Nová objednávka",
@@ -209,6 +210,7 @@ calculateLeg(0);
       predmet: "Nová objednávka FlowGo",
       vyzvednuti: pickupAddress,
       doruceni: deliveryAddress,
+      zastavky: stops.filter((stop) => stop.trim() !== "").join(" | "),
       zakaznik: customerName,
       telefon: customerPhone,
       email: customerEmail,
@@ -770,6 +772,12 @@ async function saveDeliverySignature(orderId) {
           <p className="text-sm text-slate-700">
             → {order.delivery_address}
           </p>
+
+          {order.stops && (
+  <p className="text-sm text-orange-600">
+    🛑 {order.stops}
+  </p>
+)}
 
           <p className="text-sm text-slate-600 mt-2">
             {order.customer_name} • {order.customer_phone}
