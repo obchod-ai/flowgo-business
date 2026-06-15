@@ -200,25 +200,7 @@ calculateLeg(0);
       setMessage("Chyba: " + error.message);
     } else {
 
-  await fetch("https://formsubmit.co/ajax/obchod@flowgo.cz", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({
-      predmet: "Nová objednávka FlowGo",
-      vyzvednuti: pickupAddress,
-      doruceni: deliveryAddress,
-      zastavky: stops.filter((stop) => stop.trim() !== "").join(" | "),
-      zakaznik: customerName,
-      telefon: customerPhone,
-      email: customerEmail,
-      cena: price + " Kč",
-      vzdalenost: distanceKm + " km",
-      stav: "Nová objednávka",
-    }),
-  });
+ 
 
   setMessage("Objednávka bola uložená ✅");
   setCustomerName("");
