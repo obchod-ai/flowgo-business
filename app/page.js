@@ -100,7 +100,11 @@ const deliverySigRef = useRef();
 
   const price = calculatePrice(distanceKm);
 
-  const isAdmin = user?.email === "obchod@flowgo.cz";
+const isAdmin =
+  user?.email?.trim().toLowerCase() === "obchod@flowgo.cz";
+
+  console.log("Prihlásený email:", user?.email);
+console.log("isAdmin:", isAdmin);
 
   function onPickupPlaceChanged() {
     const place = pickupAutocomplete?.getPlace();
@@ -262,6 +266,39 @@ setMonthlyRevenue(revenue);
     setScreen("driver");
     setMessage("");
   }
+
+  async function updateOrderPrice(orderId, newPrice) {
+  if (!newPrice) {
+    setMessage("Zadaj cenu.");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("orders")
+    .update({ price: Number(newPrice) })
+    .eq("id", orderId);
+
+  if (error) {
+    setMessage("Chyba pri ukladaní ceny: " + error.message);
+    return;
+  }
+
+  setOrders((prevOrders) => {
+  const updatedOrders = prevOrders.map((order) =>
+    order.id === orderId ? { ...order, price: Number(newPrice) } : order
+  );
+
+  const newRevenue = updatedOrders.reduce((sum, order) => {
+    return sum + (Number(order.price) || 0);
+  }, 0);
+
+  setMonthlyRevenue(newRevenue);
+
+  return updatedOrders;
+});
+
+  setMessage("Cena bola upravená ✅");
+}
 
   async function updateOrderStatus(orderId, newStatus) {
 
@@ -728,6 +765,29 @@ async function saveDeliverySignature(orderId) {
 
             <span>{order.price} Kč</span>
           </div>
+          {isAdmin && (
+  <div className="mt-3">
+    <input
+      type="number"
+      defaultValue={order.price}
+      id={`price-${order.id}`}
+      className="w-full p-3 rounded-xl bg-slate-100 outline-none"
+      placeholder="Vlastná cena"
+    />
+
+    <button
+      onClick={() =>
+        updateOrderPrice(
+          order.id,
+          document.getElementById(`price-${order.id}`).value
+        )
+      }
+      className="mt-2 w-full bg-green-600 text-white p-3 rounded-xl font-semibold"
+    >
+      Uložiť vlastnú cenu
+    </button>
+  </div>
+)}
 
           <p className="text-sm text-blue-600 font-semibold mt-2">
             {order.status}
