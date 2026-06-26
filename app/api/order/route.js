@@ -7,30 +7,28 @@ const corsHeaders = {
 };
 
 export async function OPTIONS() {
-  return new Response(null, {
-    status: 204,
-    headers: corsHeaders,
-  });
+  return new Response(null, { status: 204, headers: corsHeaders });
 }
 
 export async function POST(req) {
   try {
     const data = await req.json();
+    console.log("ORDER API DATA:", data);
 
-    const { error } = await supabase.from("orders").insert([
-      {
-        pickup_address: data.pickup_address || "",
-        delivery_address: data.delivery_address || "",
-        stops: data.stops || "",
-        user_email: data.user_email || "",
-        customer_name: data.customer_name || "",
-        customer_phone: data.customer_phone || "",
-        price: data.price || 0,
-        status: "Nová objednávka",
-      },
-    ]);
+    const insertData = {
+      pickup_address: data.pickup_address || "",
+      delivery_address: data.delivery_address || "",
+      user_email: data.user_email || "",
+      price: Number(data.price) || 0,
+      status: "Nová objednávka",
+    };
+
+    console.log("INSERT DATA:", insertData);
+
+    const { error } = await supabase.from("orders").insert([insertData]);
 
     if (error) {
+      console.error("SUPABASE INSERT ERROR:", error);
       return Response.json(
         { success: false, error: error.message },
         { status: 500, headers: corsHeaders }
@@ -42,6 +40,7 @@ export async function POST(req) {
       { status: 200, headers: corsHeaders }
     );
   } catch (err) {
+    console.error("ORDER API CATCH ERROR:", err);
     return Response.json(
       { success: false, error: err.message },
       { status: 500, headers: corsHeaders }
