@@ -65,29 +65,36 @@ const deliverySigRef = useRef();
 });
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-  async (_event, session) => {
+  (_event, session) => {
     const currentUser = session?.user || null;
     setUser(currentUser);
 
-    if (currentUser?.email) {
-      const { data: company, error: companyError } = await supabase
-  .from("companies")
-  .select("company_name, ico, email")
-  .eq("email", currentUser.email.trim().toLowerCase())
-  .maybeSingle();
-
-console.log("COMPANY DATA:", company);
-console.log("COMPANY ERROR:", companyError);
-
-if (companyError) {
-  setMessage("Chyba načítania firmy: " + companyError.message);
-}
-
-if (company) {
-  setCompanyName(company.company_name || "");
-  setCompanyIco(company.ico || "");
-}
+    if (!currentUser?.email) {
+      setCompanyName("");
+      setCompanyIco("");
+      return;
     }
+
+    setTimeout(async () => {
+      const { data: company, error: companyError } = await supabase
+        .from("companies")
+        .select("company_name, ico, email")
+        .eq("email", currentUser.email.trim().toLowerCase())
+        .maybeSingle();
+
+      console.log("COMPANY DATA:", company);
+      console.log("COMPANY ERROR:", companyError);
+
+      if (companyError) {
+        setMessage("Chyba načítania firmy: " + companyError.message);
+        return;
+      }
+
+      if (company) {
+        setCompanyName(company.company_name || "");
+        setCompanyIco(company.ico || "");
+      }
+    }, 0);
   }
 );
 
