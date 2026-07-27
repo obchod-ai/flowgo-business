@@ -70,16 +70,23 @@ const deliverySigRef = useRef();
     setUser(currentUser);
 
     if (currentUser?.email) {
-      const { data: company } = await supabase
-        .from("companies")
-        .select("*")
-        .eq("email", currentUser.email)
-        .single();
+      const { data: company, error: companyError } = await supabase
+  .from("companies")
+  .select("company_name, ico, email")
+  .eq("email", currentUser.email.trim().toLowerCase())
+  .maybeSingle();
 
-      if (company) {
-        setCompanyName(company.company_name);
-        setCompanyIco(company.ico);
-      }
+console.log("COMPANY DATA:", company);
+console.log("COMPANY ERROR:", companyError);
+
+if (companyError) {
+  setMessage("Chyba načítania firmy: " + companyError.message);
+}
+
+if (company) {
+  setCompanyName(company.company_name || "");
+  setCompanyIco(company.ico || "");
+}
     }
   }
 );
@@ -175,44 +182,85 @@ function calculateLeg(index) {
 
 calculateLeg(0);
   }
+async function createOrder() {
+  if (!pickupAddress || !deliveryAddress) {
+    setMessage("Vyplňte prosím všetky údaje.");
+    return;
+  }
 
-  async function createOrder() {
-    if (!pickupAddress || !deliveryAddress) {
-      setMessage("Vyplňte prosím všetky údaje.");
-      return;
+  if (!distanceKm) {
+    setMessage("Najprv klikni na Spočítať vzdialenosť a cenu.");
+    return;
+  }
+
+  setMessage("Ukladám objednávku...");
+
+  const cleanStops = stops
+    .filter((stop) => stop.trim() !== "")
+    .join(" | ");
+
+  const { error } = await supabase.from("orders").insert([
+    {
+      pickup_address: pickupAddress,
+      delivery_address: deliveryAddress,
+      stops: cleanStops,
+      user_email: user.email,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_email: customerEmail,
+      price,
+      status: "Nová objednávka",
+    },
+  ]);
+
+  if (error) {
+    setMessage("Chyba: " + error.message);
+    return;
+  }
+
+  try {
+    const emailResponse = await fetch("/api/send-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        to: "obchod@flowgo.cz",
+        subject: "Nová objednávka FlowGo",
+        message:
+          `Nová objednávka bola vytvorená.\n\n` +
+          `Firma: ${companyName || "Neuvedená"}\n` +
+          `IČO: ${companyIco || "Neuvedené"}\n` +
+          `Email zákazníka: ${user.email}\n\n` +
+          `Vyzvednutí: ${pickupAddress}\n` +
+          `${cleanStops ? `Zastávky: ${cleanStops}\n` : ""}` +
+          `Doručení: ${deliveryAddress}\n\n` +
+          `Vzdialenosť: ${distanceKm.toFixed(1)} km\n` +
+          `Cena: ${price} Kč\n` +
+          `Status: Nová objednávka`,
+      }),
+    });
+
+    if (!emailResponse.ok) {
+      console.error(
+        "Objednávka bola uložená, ale email sa nepodarilo odoslať."
+      );
     }
-
-    if (!distanceKm) {
-      setMessage("Najprv klikni na Spočítať vzdialenosť a cenu.");
-      return;
-    }
-
-    setMessage("Ukladám objednávku...");
-
-    const { error } = await supabase.from("orders").insert([
-  {
-    pickup_address: pickupAddress,
-    delivery_address: deliveryAddress,
-    stops: stops.filter((stop) => stop.trim() !== "").join(" | "),
-    user_email: user.email,
-    price,
-    status: "Nová objednávka",
-  },
-]);
-
-    if (error) {
-      setMessage("Chyba: " + error.message);
-    } else {
-
- 
+  } catch (emailError) {
+    console.error("Chyba pri odosielaní emailu:", emailError);
+  }
 
   setMessage("Objednávka bola uložená ✅");
+
+  setPickupAddress("");
+  setDeliveryAddress("");
+  setStops([]);
+  setDistanceKm(0);
   setCustomerName("");
   setCustomerPhone("");
   setCustomerEmail("");
 }
-  }
-
+  
  async function loadOrders() {
   setMessage("Načítavam objednávky...");
 
@@ -449,10 +497,23 @@ async function saveDeliverySignature(orderId) {
   }
 
   async function signOut() {
-    await supabase.auth.signOut();
-    setUser(null);
-    setScreen("order");
+  setMessage("Odhlasujem...");
+
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    console.error("Chyba odhlásenia:", error);
+    setMessage("Chyba odhlásenia: " + error.message);
+    return;
   }
+
+  setUser(null);
+  setCompanyName("");
+  setCompanyIco("");
+  setScreen("order");
+
+  window.location.reload();
+}
 
   if (!isLoaded) {
     return (
