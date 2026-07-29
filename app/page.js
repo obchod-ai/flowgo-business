@@ -534,7 +534,7 @@ async function saveDeliverySignature(orderId) {
   if (!user) {
     return (
       <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white p-6 rounded-3xl shadow-xl">
+        <div className="w-full max-w-md bg-white px-6 py-4 rounded-3xl shadow-xl">
           <h1 className="text-3xl font-bold text-center text-blue-600">
             FlowGo Business
           </h1>
@@ -625,7 +625,7 @@ async function saveDeliverySignature(orderId) {
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white p-6 rounded-3xl shadow-xl">
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-1">
   <Image
     src="/logo.png"
     alt="FlowGo Delivery Services"
