@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 import SignatureCanvas from "react-signature-canvas";
 import { useJsApiLoader } from "@react-google-maps/api";
 import { supabase } from "../lib/supabase";
@@ -624,9 +625,16 @@ async function saveDeliverySignature(orderId) {
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white p-6 rounded-3xl shadow-xl">
-        <h1 className="text-3xl font-bold text-center text-blue-600">
-          FlowGo Business
-        </h1>
+        <div className="flex justify-center mb-4">
+  <Image
+    src="/logo.png"
+    alt="FlowGo Delivery Services"
+    width={320}
+    height={120}
+    priority
+    className="w-auto h-auto"
+  />
+</div>
 
 <div className="mt-4 bg-slate-100 border border-slate-200 rounded-2xl p-4">
   <p className="text-sm uppercase tracking-wide text-slate-500">
